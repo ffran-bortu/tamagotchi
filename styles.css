@@ -1,0 +1,23 @@
+.pixel-pattern {
+    background-color: #1a1a1a;
+    background-image:
+        linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222),
+        linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222);
+    background-position: 0 0, 10px 10px;
+    background-size: 20px 20px;
+}
+
+.scanlines {
+    background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0,0,0,0.1) 50%,
+        rgba(0,0,0,0.1)
+    );
+    background-size: 100% 4px;
+}
+
+body {
+  min-height: max(884px, 100dvh);
+}

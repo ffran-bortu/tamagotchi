@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>The Empty Sanctuary</title>
+    <link rel="manifest" href="public/manifest.json">
+    <meta name="theme-color" content="#2D2D2D">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=VT323&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea2a33",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#211111",
+                        "retro-bg": "#2D2D2D",
+                        "retro-indigo": "#5D4B8E",
+                        "retro-sage": "#8CA68D",
+                        "retro-rose": "#BC858D",
+                        "retro-vine-brown": "#8C6A5D",
+                        "retro-vine-green": "#6B8C42",
+                        "surface-dark": "#383838",
+                        "retro-gray": "#585858",
+                        "retro-light": "#dddddd",
+                        "retro-gold": "#F2C94C",
+                        "retro-blue": "#56CCF2",
+                        "retro-violet": "#BB6BD9",
+                        "retro-green": "#6FCF97",
+                        "retro-pink": "#EB5757",
+                        "retro-panel": "#383838",
+                        "retro-border": "#121212",
+                        "retro-accent": "#73daca",
+                        "chip-gold": "#e0af68",
+                        "chip-violet": "#9d7cd8",
+                        "chip-teal": "#73daca",
+                        "chip-red": "#f7768e",
+                        "chip-empty": "#262626",
+                        "chip-border-light": "rgba(255,255,255,0.1)",
+                        "chip-border-dark": "rgba(0,0,0,0.4)",
+                        "mood-happy": "#e0af68",
+                        "mood-anxious": "#9d7cd8",
+                        "mood-calm": "#73daca",
+                        "mood-angry": "#f7768e",
+                        "mood-neutral": "#565f89",
+                        "text-placeholder": "#9ca3af",
+                        "sage-green": "#8BA888",
+                        "muted-red": "#C47474",
+                        "entry-bg": "#3E3E3E",
+                        "mood-tint": "rgba(99, 102, 241, 0.1)"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "pixel": ['"Press Start 2P"', 'cursive'],
+                        "terminal": ['"VT323"', 'monospace'],
+                        "retro": ['"Press Start 2P"', "cursive"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    boxShadow: {
+                        'retro': '4px 4px 0px 0px #1a1a1a',
+                        'retro-strong': '6px 6px 0px 0px #000000',
+                        'retro-white': '4px 4px 0px 0px #dddddd',
+                        'pixel': '4px 4px 0 0 rgba(0,0,0,0.5)',
+                        'pixel-card': '4px 4px 0 0 #121212',
+                        'pixel-sm': '2px 2px 0 0 rgba(0,0,0,0.5)',
+                        'pixel-inset': 'inset 2px 2px 0 0 rgba(0,0,0,0.3)',
+                        'chip-3d': 'inset 2px 2px 0 0 rgba(255,255,255,0.2), inset -2px -2px 0 0 rgba(0,0,0,0.5)',
+                    }
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+</head>
+<body class="bg-retro-bg text-white font-display antialiased overflow-hidden">
+    <div id="app" class="relative flex h-full min-h-screen w-full flex-col bg-retro-bg max-w-md mx-auto shadow-2xl overflow-hidden border-x border-[#1a1a1a]">
+        <!-- Main content area for screens -->
+        <main id="content">
+            <!-- Screens will be loaded here -->
+        </main>
+        <nav class="grid grid-cols-5 gap-2 p-2 bg-retro-panel border-t-4 border-retro-border">
+            <button data-screen="home" class="group flex flex-col items-center gap-1 p-2">
+                <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">home</span>
+                <span class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">Home</span>
+            </button>
+            <button data-screen="command" class="group flex flex-col items-center gap-1 p-2">
+                <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">terminal</span>
+                <span class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">Command</span>
+            </button>
+            <button data-screen="archive-grid" class="group flex flex-col items-center gap-1 p-2">
+                <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">grid_view</span>
+                <span class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">Archive</span>
+            </button>
+            <button data-screen="past-reflections" class="group flex flex-col items-center gap-1 p-2">
+                <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">history</span>
+                <span class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">History</span>
+            </button>
+            <button data-screen="memory-crystal" class="group flex flex-col items-center gap-1 p-2">
+                <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">memory</span>
+                <span class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">Memory</span>
+            </button>
+        </nav>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>
