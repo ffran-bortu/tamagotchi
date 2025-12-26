@@ -1,23 +1,50 @@
+.cursor-blink {
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
 .pixel-pattern {
-    background-color: #1a1a1a;
-    background-image:
-        linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222),
-        linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222);
-    background-position: 0 0, 10px 10px;
-    background-size: 20px 20px;
+    background-image: 
+        linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent);
+    background-size: 4px 4px;
 }
 
 .scanlines {
     background: linear-gradient(
         to bottom,
-        rgba(255,255,255,0),
-        rgba(255,255,255,0) 50%,
-        rgba(0,0,0,0.1) 50%,
-        rgba(0,0,0,0.1)
+        rgba(255, 255, 255, 0) 50%,
+        rgba(0, 0, 0, 0.1) 50%
     );
     background-size: 100% 4px;
+    pointer-events: none;
 }
 
-body {
-  min-height: max(884px, 100dvh);
+.empty-pattern {
+    background-image: 
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, 0.03) 2px,
+            rgba(255, 255, 255, 0.03) 4px
+        );
+}
+
+/* Pixel-perfect rendering for all images */
+img, canvas, video {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+/* Selected mood button styling */
+.mood-selector-button.selected {
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
 }
