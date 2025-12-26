@@ -5,8 +5,11 @@
 // ============================================================================
 
 export class PetCanvasController {
-    constructor(db) {
+    constructor(db, canvasId = null) {
         this.db = db;
+        this.canvasId = canvasId; // If provided, runs in single-canvas "preview" mode
+        this.singleCanvasMode = !!canvasId;
+
         this.canvases = {
             background: null,
             pet: null,
@@ -17,6 +20,9 @@ export class PetCanvasController {
             pet: null,
             accessory: null
         };
+
+        // Resize Observer
+        this.resizeObserver = null;
 
         // New Sprite Structure
         this.sprites = {
@@ -41,17 +47,48 @@ export class PetCanvasController {
         this.feedingFrameCount = 3;
     }
 
-    async initialize() {
+    async initialize(startAnimation = true) {
         this.setupCanvases();
         await this.loadSprites();
         await this.loadPetCustomization();
-        this.drawBackground();
-        this.drawHat();
-        this.startAnimationLoop();
-        this.setupControls();
+
+        if (!this.singleCanvasMode) {
+            this.drawBackground();
+            this.drawHat();
+        }
+
+        if (startAnimation) {
+            this.startAnimationLoop();
+            this.setupControls();
+        }
     }
 
     setupCanvases() {
+        if (this.singleCanvasMode) {
+            // Preview Mode: Use one canvas for everything
+            const canvas = document.getElementById(this.canvasId);
+            if (!canvas) {
+                console.error('Preview canvas not found:', this.canvasId);
+                return;
+            }
+
+            // Aliasing all to the same canvas/context
+            this.canvases.pet = canvas;
+            this.canvases.accessory = canvas;
+            this.canvases.background = canvas;
+
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            canvas.style.imageRendering = 'pixelated';
+
+            this.contexts.pet = ctx;
+            this.contexts.accessory = ctx;
+            this.contexts.background = ctx;
+
+            return;
+        }
+
+        // Standard Mode: 3 layers
         this.canvases.background = document.getElementById('pet-bg-canvas');
         this.canvases.pet = document.getElementById('pet-sprite-canvas');
         this.canvases.accessory = document.getElementById('pet-accessory-canvas');
@@ -75,11 +112,27 @@ export class PetCanvasController {
             canvas.style.imageRendering = 'pixelated';
         });
 
-        // Size canvases
+        // Setup ResizeObserver
+        if (this.resizeObserver) this.resizeObserver.disconnect();
+
+        if (!this.singleCanvasMode) {
+            const container = this.canvases.background.parentElement;
+            this.resizeObserver = new ResizeObserver(() => {
+                this.resizeCanvases();
+                this.drawBackground();
+                this.drawPetFrame();
+                this.drawHat();
+            });
+            this.resizeObserver.observe(container);
+        }
+
+        // Initial size
         this.resizeCanvases();
     }
 
     resizeCanvases() {
+        if (this.singleCanvasMode) return; // Preview size handled by CSS/HTML
+
         const container = this.canvases.background.parentElement;
         const size = Math.min(container.clientWidth, container.clientHeight);
 
@@ -176,7 +229,25 @@ export class PetCanvasController {
         this.currentPetColor = petState.currentColor || 1;
     }
 
+    // New Helper Method for Closet
+    drawPet(color, hat) {
+        this.currentPetColor = parseInt(color) || 1;
+        this.currentHat = hat === '' ? 0 : (parseInt(hat) || 0);
+
+        if (this.singleCanvasMode) {
+            // Clear entire canvas once
+            const ctx = this.contexts.pet;
+            const canvas = this.canvases.pet;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        this.drawPetFrame();
+        this.drawHat();
+    }
+
     drawBackground() {
+        if (this.singleCanvasMode) return; // No background in preview mode
+
         const ctx = this.contexts.background;
         const canvas = this.canvases.background;
 
@@ -196,8 +267,10 @@ export class PetCanvasController {
         const ctx = this.contexts.pet;
         const canvas = this.canvases.pet;
 
-        // Clear previous frame
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Clear previous frame ONLY if not in single canvas mode (handled by drawPet)
+        if (!this.singleCanvasMode) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
 
         // Get correct frame list based on state
         const foxData = this.sprites.foxes[this.currentPetColor];
@@ -237,8 +310,10 @@ export class PetCanvasController {
         const ctx = this.contexts.accessory;
         const canvas = this.canvases.accessory;
 
-        // Clear previous
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Clear previous ONLY if not in single canvas mode
+        if (!this.singleCanvasMode) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
 
         if (this.currentHat === 0) return; // No hat
 
@@ -308,6 +383,10 @@ export class PetCanvasController {
         if (this.animationLoopId) {
             cancelAnimationFrame(this.animationLoopId);
             this.animationLoopId = null;
+        }
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
         }
     }
 

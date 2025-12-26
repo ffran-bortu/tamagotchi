@@ -31,7 +31,8 @@ class PixelPetApp {
                 dbPetState.lastFedTime,
                 dbPetState.currentHat,
                 dbPetState.unlockedAccessories,
-                dbPetState.currentColor
+                dbPetState.currentColor,
+                dbPetState.name
             );
 
             // Initialize screen controllers
@@ -95,6 +96,24 @@ class PixelPetApp {
             // Initialize pet canvas (includes animation start)
             if (this.petCanvas) {
                 this.petCanvas.initialize();
+            }
+
+            // Setup Name Input
+            const nameInput = document.getElementById('pet-name-input');
+            if (nameInput) {
+                // Refresh state from DB to ensure fresh name
+                const freshState = this.db.getPetState();
+                if (freshState) this.petState.name = freshState.name;
+
+                nameInput.value = this.petState.name;
+
+                nameInput.addEventListener('change', (e) => {
+                    const newName = e.target.value.trim().toUpperCase() || 'MY PET';
+                    this.petState.name = newName;
+                    this.db.updatePetName(newName);
+                    e.target.value = newName; // Normalize display
+                    e.target.blur(); // Remove focus
+                });
             }
         } else {
             // Stop pet animations when not on home screen

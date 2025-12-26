@@ -87,8 +87,22 @@
 <body class="bg-retro-bg text-white font-display antialiased overflow-hidden">
     <div id="app"
         class="relative flex h-full min-h-screen w-full flex-col bg-retro-bg max-w-md mx-auto shadow-2xl overflow-hidden border-x border-[#1a1a1a]">
+        <!-- Persistent Header -->
+        <div class="flex items-center bg-retro-bg p-4 pb-2 justify-between border-b-4 border-[#3a3a3a]">
+            <h2 id="current-time"
+                class="text-white text-xl font-bold leading-tight tracking-widest flex-1 uppercase text-shadow-sm">--:--
+                --</h2>
+            <div class="flex items-center justify-end gap-2">
+                <div class="flex items-center gap-1">
+                    <span class="text-xs font-bold tracking-widest text-retro-sage">80%</span>
+                    <span class="material-symbols-outlined text-retro-sage"
+                        style="font-size: 32px;">battery_5_bar</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Main content area for screens -->
-        <main id="content">
+        <main id="content" class="flex-1 flex flex-col min-h-0 overflow-hidden">
             <!-- Screens will be loaded here -->
         </main>
 
@@ -144,26 +158,16 @@
             <p class="text-[#666] text-xs font-bold uppercase tracking-wide mt-1 status-text">Status: Thriving</p>
         </div>
 
-        <nav class="grid grid-cols-5 gap-2 p-2 bg-retro-panel border-t-4 border-retro-border">
+        <nav class="grid grid-cols-3 gap-2 p-2 bg-retro-panel border-t-4 border-retro-border">
             <button data-screen="home" class="group flex flex-col items-center gap-1 p-2">
                 <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">home</span>
                 <span
                     class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">Home</span>
             </button>
-            <button data-screen="command" class="group flex flex-col items-center gap-1 p-2">
-                <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">terminal</span>
-                <span
-                    class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">Command</span>
-            </button>
             <button data-screen="archive-grid" class="group flex flex-col items-center gap-1 p-2">
                 <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">grid_view</span>
                 <span
                     class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">Archive</span>
-            </button>
-            <button data-screen="past-reflections" class="group flex flex-col items-center gap-1 p-2">
-                <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">history</span>
-                <span
-                    class="text-[10px] uppercase font-pixel tracking-tighter text-retro-light group-hover:text-retro-accent">History</span>
             </button>
             <button data-screen="closet" class="group flex flex-col items-center gap-1 p-2">
                 <span class="material-symbols-outlined text-retro-light group-hover:text-retro-accent">checkroom</span>

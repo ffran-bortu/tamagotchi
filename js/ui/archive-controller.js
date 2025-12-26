@@ -27,7 +27,7 @@ export class ArchiveGridController {
         });
 
         // Get calendar grid element
-        const grid = document.querySelector('.grid.grid-cols-7');
+        const grid = document.getElementById('calendar-grid');
         if (!grid) return;
 
         // Calculate first day of month and total days
@@ -37,10 +37,28 @@ export class ArchiveGridController {
         const startDayOfWeek = firstDay.getDay(); // 0 = Sunday
 
         // Clear existing cells (keep header row)
-        const headerRow = grid.querySelector('.grid.grid-cols-7');
-        grid.innerHTML = '';
+        // Re-add header with navigation
+        const headerContainer = document.querySelector('h2.text-retro-accent').parentElement;
+        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        headerContainer.innerHTML = `
+            <div class="flex items-center gap-4 select-none">
+                <button id="prev-month" class="text-retro-accent hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <h2 class="text-retro-accent text-sm md:text-base font-retro leading-tight tracking-widest text-center drop-shadow-md w-24">
+                    ${monthNames[this.currentMonth - 1]} <span class="text-white">${this.currentYear}</span>
+                </h2>
+                <button id="next-month" class="text-retro-accent hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+        `;
 
-        // Re-add header
+        // Attach listeners
+        document.getElementById('prev-month').addEventListener('click', () => this.changeMonth(-1));
+        document.getElementById('next-month').addEventListener('click', () => this.changeMonth(1));
+
+        // Re-add grid headers
         grid.innerHTML = `
             <div class="text-[0.6rem] font-bold text-neutral-500 font-retro">S</div>
             <div class="text-[0.6rem] font-bold text-neutral-500 font-retro">M</div>
@@ -96,11 +114,22 @@ export class ArchiveGridController {
         if (progressBar) {
             progressBar.style.width = `${percentage}%`;
         }
+    }
 
-        // Update month/year header
-        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        document.querySelector('h2.text-retro-accent').innerHTML = `
-            ${monthNames[this.currentMonth - 1]} <span class="text-white">${this.currentYear}</span>
-        `;
+    changeMonth(delta) {
+        let newMonth = this.currentMonth + delta;
+        let newYear = this.currentYear;
+
+        if (newMonth > 12) {
+            newMonth = 1;
+            newYear++;
+        } else if (newMonth < 1) {
+            newMonth = 12;
+            newYear--;
+        }
+
+        this.currentMonth = newMonth;
+        this.currentYear = newYear;
+        this.renderCalendar();
     }
 }

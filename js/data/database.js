@@ -26,10 +26,21 @@ export class Database {
             // Initialize default data if needed
             this._initializeDefaults();
 
+            // Run migrations
+            this._migrate();
+
             return this;
         } catch (error) {
             console.error('Database initialization failed:', error);
             throw error;
+        }
+    }
+
+    _migrate() {
+        try {
+            this.db.run("ALTER TABLE pet ADD COLUMN name TEXT DEFAULT 'MY PET';");
+        } catch (e) {
+            // Column likely exists or error adding it
         }
     }
 
@@ -41,7 +52,8 @@ export class Database {
                 last_fed_time INTEGER NOT NULL,
                 current_hat TEXT,
                 current_color INTEGER DEFAULT 1,
-                unlocked_accessories TEXT
+                unlocked_accessories TEXT,
+                name TEXT DEFAULT 'MY PET'
             );
         `);
 
@@ -70,7 +82,7 @@ export class Database {
         if (result.length === 0) {
             const now = Date.now();
             this.db.run(
-                "INSERT INTO pet (id, last_fed_time, current_hat, unlocked_accessories) VALUES (1, ?, '', '[]');",
+                "INSERT INTO pet (id, last_fed_time, current_hat, unlocked_accessories, name) VALUES (1, ?, '', '[]', 'MY PET');",
                 [now]
             );
             this.save();
@@ -125,16 +137,17 @@ export class Database {
     // Pet state operations
     getPetState() {
         const result = this.db.exec(
-            "SELECT last_fed_time, current_hat, current_color, unlocked_accessories FROM pet WHERE id = 1;"
+            "SELECT last_fed_time, current_hat, current_color, unlocked_accessories, name FROM pet WHERE id = 1;"
         );
 
         if (result.length > 0) {
-            const [lastFedTime, currentHat, currentColor, accessoriesJson] = result[0].values[0];
+            const [lastFedTime, currentHat, currentColor, accessoriesJson, name] = result[0].values[0];
             return {
                 lastFedTime: lastFedTime,
                 currentHat: currentHat || '',
                 currentColor: currentColor || 1,
-                unlockedAccessories: JSON.parse(accessoriesJson || '[]')
+                unlockedAccessories: JSON.parse(accessoriesJson || '[]'),
+                name: name || 'MY PET'
             };
         }
         return null;
@@ -142,6 +155,11 @@ export class Database {
 
     updatePetLastFed(timestamp) {
         this.db.run("UPDATE pet SET last_fed_time = ? WHERE id = 1;", [timestamp]);
+        this.save();
+    }
+
+    updatePetName(name) {
+        this.db.run("UPDATE pet SET name = ? WHERE id = 1;", [name]);
         this.save();
     }
 

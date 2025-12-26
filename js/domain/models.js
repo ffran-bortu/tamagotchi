@@ -20,11 +20,12 @@ export const HUNGER_STATES = {
 };
 
 export class PetState {
-    constructor(lastFedTime, currentHat = '', unlockedAccessories = [], currentColor = 1) {
+    constructor(lastFedTime, currentHat = '', unlockedAccessories = [], currentColor = 1, name = 'MY PET') {
         this.lastFedTime = lastFedTime;
         this.currentHat = currentHat;
-        this.unlockedAccessories = unlockedAccessories;
+        this.unlockedAccessories = unlockedAccessories; // Array of unlocked item IDs
         this.currentColor = currentColor;
+        this.name = name;
     }
 
     getHungerPercentage() {
