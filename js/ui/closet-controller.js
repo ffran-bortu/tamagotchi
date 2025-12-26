@@ -1,25 +1,19 @@
 // ============================================================================
 // UI LAYER - Closet Controller
-// Handles the logic for the pet customization screen (the closet)
+// Handles the output logic for the pet customization screen
 // ============================================================================
 
 export class ClosetController {
     constructor(db, onOutfitSaved) {
         this.db = db;
-        this.onOutfitSaved = onOutfitSaved; // Callback to execute after saving
-
-        // Temporary state for user's selections in the closet
+        this.onOutfitSaved = onOutfitSaved;
         this.selectedColor = 1;
         this.selectedHat = '';
-
-        // To be populated by initialize()
-        this.canvasController = null;
         this.colorSelector = null;
         this.hatSelector = null;
     }
 
     async initialize() {
-        // Get DOM elements from the loaded closet.html
         this.colorSelector = document.getElementById('color-selector');
         this.hatSelector = document.getElementById('hat-selector');
         const saveButton = document.getElementById('save-outfit-button');
@@ -29,17 +23,14 @@ export class ClosetController {
             return;
         }
 
-        // Load current pet state to initialize the selection
         const petState = this.db.getPetState();
         this.selectedColor = petState.currentColor || 1;
         this.selectedHat = petState.currentHat || '';
 
-        // Attach event listeners
         this.colorSelector.addEventListener('click', (e) => this.handleColorSelection(e));
         this.hatSelector.addEventListener('click', (e) => this.handleHatSelection(e));
         saveButton.addEventListener('click', () => this.saveOutfit());
 
-        // Set initial UI state and render preview
         this.updateSelectionUI();
         this.renderPreview();
     }
@@ -57,11 +48,13 @@ export class ClosetController {
         const button = e.target.closest('button[data-hat]');
         if (!button) return;
 
-        // If the currently selected hat is clicked again, deselect it
-        if (this.selectedHat === button.dataset.hat) {
-            this.selectedHat = ''; // Set to no hat
+        const hatId = button.dataset.hat;
+
+        // "PLUS when clicking the currently selected hat it deselects"
+        if (this.selectedHat === hatId) {
+            this.selectedHat = '';
         } else {
-            this.selectedHat = button.dataset.hat;
+            this.selectedHat = hatId;
         }
 
         this.updateSelectionUI();
@@ -69,52 +62,42 @@ export class ClosetController {
     }
 
     updateSelectionUI() {
-        // Update styles for color buttons
         this.colorSelector.querySelectorAll('button').forEach(btn => {
             const isSelected = parseInt(btn.dataset.color, 10) === this.selectedColor;
             btn.classList.toggle('border-white', isSelected);
             btn.classList.toggle('shadow-retro-strong', isSelected);
             btn.classList.toggle('border-black', !isSelected);
+            btn.classList.toggle('scale-110', isSelected); // Visual feedback
         });
 
-        // Update styles for hat buttons
         this.hatSelector.querySelectorAll('button').forEach(btn => {
             const isSelected = btn.dataset.hat === this.selectedHat;
             btn.classList.toggle('border-white', isSelected);
-            btn.classList.toggle('shadow-retro-strong', isSelected);
-            btn.classList.toggle('border-black', !isSelected);
             btn.classList.toggle('bg-retro-gray', isSelected);
             btn.classList.toggle('bg-surface-dark', !isSelected);
+            btn.classList.toggle('border-black', !isSelected);
         });
     }
 
     async renderPreview() {
-        // Dynamically import the PetCanvasController to avoid circular dependencies
-        // if it were ever to reference the main app.
+        // Reuse PetCanvasController for preview
         const { PetCanvasController } = await import('./pet-canvas-controller.js');
-
         const canvasElement = document.getElementById('closet-canvas');
         if (!canvasElement) return;
 
-        // Create a temporary, on-the-fly canvas controller for the preview
+        // We re-instantiate lightly.
+        // Note: initialize(false) prevents animation loop.
         const previewController = new PetCanvasController(this.db, canvasElement.id);
+        await previewController.initialize(false);
 
-        // We need to initialize it to load sprites, but prevent animation loop
-        await previewController.initialize(false); // 'false' to prevent starting animation
-
-        // Draw the pet with the currently selected appearance
+        // Draw the selected state
         previewController.drawPet(this.selectedColor, this.selectedHat);
     }
 
     saveOutfit() {
         this.db.updatePetColor(this.selectedColor);
         this.db.updatePetHat(this.selectedHat);
-
         alert('✅ Outfit Saved!');
-
-        // Use the callback to trigger navigation back to the home screen
-        if (this.onOutfitSaved) {
-            this.onOutfitSaved();
-        }
+        if (this.onOutfitSaved) this.onOutfitSaved();
     }
 }

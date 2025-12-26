@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Widget</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2D2D2D;
+            color: white;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .widget-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .pet-preview {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pet-preview img {
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+        }
+        .status-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #383838;
+            border: 2px solid #121212;
+            position: relative;
+        }
+        .fill {
+            height: 100%;
+            background-color: #6B8C42;
+            width: 80%; /* Dynamic */
+        }
+        .text {
+            font-size: 10px;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8CA68D;
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="pet-preview">
+            <!-- Placeholder image, script should load actual pet state -->
+            <img src="sprites/fox_1/idle/fox_1_idle_1.png" id="pet-img">
+        </div>
+        <div style="width: 100%">
+            <div class="status-bar">
+                <div class="fill" id="hunger-bar"></div>
+            </div>
+            <div class="text" id="status-text">Thriving</div>
+        </div>
+    </div>
+    <script>
+        // Simple script to read from localStorage/IndexedDB if possible
+        // Note: Widgets in PWA have limited access depending on implementation.
+        // Assuming this runs in a context where it can access storage or is updated via Service Worker.
+
+        // For simulation purposes, we check localStorage
+        try {
+            // This might fail if widget runs in isolated context
+            // But standard PWA widgets usually share origin
+            // We can try to open the database?
+            // SQLite WASM is heavy for a widget.
+            // We'll rely on a simplified 'widget-state' in localStorage if available,
+            // or just show static for now.
+
+            // To make this functional, the main app should write to a shared key
+            const state = JSON.parse(localStorage.getItem('pixel_pet_widget_state') || '{}');
+
+            if (state.hunger) {
+                document.getElementById('hunger-bar').style.width = state.hunger + '%';
+                document.getElementById('status-text').textContent = state.status || 'Unknown';
+            }
+            if (state.petImage) {
+                 // Update image source if we had a static snapshot
+                 // document.getElementById('pet-img').src = state.petImage;
+            }
+        } catch(e) {
+            console.log('Widget storage access failed');
+        }
+    </script>
+</body>
+</html>

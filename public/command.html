@@ -11,7 +11,7 @@
     </div>
 
     <div class="flex-1 flex flex-col min-h-[200px]">
-        <div
+        <div id="prompt-container"
             class="relative w-full h-full bg-black border-4 border-retro-gray p-4 flex flex-col focus-within:border-retro-green transition-colors duration-100">
             <div
                 class="flex justify-between items-center pb-2 mb-2 border-b-2 border-dashed border-retro-gray text-lg text-retro-gray font-terminal">
@@ -32,30 +32,39 @@
     <div class="flex flex-col gap-3">
         <p class="text-retro-light text-xs font-pixel uppercase tracking-widest text-center">Select Mood</p>
         <div class="grid grid-cols-5 gap-2">
+            <!--
+               Sprite Sheet: 310x86
+               Each tile approx 62px wide.
+               0: Happy
+               1: Sad
+               2: Anxious
+               3: Neutral
+               4: Excited
+            -->
             <button
-                class="mood-selector-button aspect-square border-4 border-[#F0E68C] bg-[#F0E68C]/20 hover:bg-[#F0E68C]/40 transition-all active:scale-95"
+                class="mood-selector-button aspect-square border-4 border-[#F0E68C] bg-[#F0E68C]/20 hover:bg-[#F0E68C]/40 transition-all active:scale-95 flex items-center justify-center overflow-hidden"
                 data-mood="HAPPY" title="Happy">
-                <span class="text-2xl">😊</span>
+                <span class="mood-icon w-[62px] h-[64px] bg-[url('public/sprites/mood%20tiles.png')] bg-no-repeat bg-[length:310px_86px] bg-[0px_0px]"></span>
             </button>
             <button
-                class="mood-selector-button aspect-square border-4 border-[#5F9EA0] bg-[#5F9EA0]/20 hover:bg-[#5F9EA0]/40 transition-all active:scale-95"
+                class="mood-selector-button aspect-square border-4 border-[#5F9EA0] bg-[#5F9EA0]/20 hover:bg-[#5F9EA0]/40 transition-all active:scale-95 flex items-center justify-center overflow-hidden"
                 data-mood="SAD" title="Sad">
-                <span class="text-2xl">😢</span>
+                <span class="mood-icon w-[62px] h-[64px] bg-[url('public/sprites/mood%20tiles.png')] bg-no-repeat bg-[length:310px_86px] bg-[-62px_0px]"></span>
             </button>
             <button
-                class="mood-selector-button aspect-square border-4 border-[#9370DB] bg-[#9370DB]/20 hover:bg-[#9370DB]/40 transition-all active:scale-95"
+                class="mood-selector-button aspect-square border-4 border-[#9370DB] bg-[#9370DB]/20 hover:bg-[#9370DB]/40 transition-all active:scale-95 flex items-center justify-center overflow-hidden"
                 data-mood="ANXIOUS" title="Anxious">
-                <span class="text-2xl">😰</span>
+                <span class="mood-icon w-[62px] h-[64px] bg-[url('public/sprites/mood%20tiles.png')] bg-no-repeat bg-[length:310px_86px] bg-[-124px_0px]"></span>
             </button>
             <button
-                class="mood-selector-button selected aspect-square border-4 border-[#8FBC8F] bg-[#8FBC8F]/20 hover:bg-[#8FBC8F]/40 transition-all active:scale-95"
+                class="mood-selector-button selected aspect-square border-4 border-[#8FBC8F] bg-[#8FBC8F]/20 hover:bg-[#8FBC8F]/40 transition-all active:scale-95 flex items-center justify-center overflow-hidden"
                 data-mood="NEUTRAL" title="Neutral">
-                <span class="text-2xl">😐</span>
+                <span class="mood-icon w-[62px] h-[64px] bg-[url('public/sprites/mood%20tiles.png')] bg-no-repeat bg-[length:310px_86px] bg-[-186px_0px]"></span>
             </button>
             <button
-                class="mood-selector-button aspect-square border-4 border-[#F08080] bg-[#F08080]/20 hover:bg-[#F08080]/40 transition-all active:scale-95"
+                class="mood-selector-button aspect-square border-4 border-[#F08080] bg-[#F08080]/20 hover:bg-[#F08080]/40 transition-all active:scale-95 flex items-center justify-center overflow-hidden"
                 data-mood="EXCITED" title="Excited">
-                <span class="text-2xl">🎉</span>
+                <span class="mood-icon w-[62px] h-[64px] bg-[url('public/sprites/mood%20tiles.png')] bg-no-repeat bg-[length:310px_86px] bg-[-248px_0px]"></span>
             </button>
         </div>
     </div>
@@ -68,14 +77,4 @@
             Save Entry
         </span>
     </button>
-
-    <script>
-        // Mood selector interaction
-        document.querySelectorAll('.mood-selector-button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.mood-selector-button').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-            });
-        });
-    </script>
 </main>

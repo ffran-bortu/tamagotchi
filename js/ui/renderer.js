@@ -3,6 +3,8 @@
 // Manages screen loading and persistent UI components
 // ============================================================================
 
+import { MOOD_COLORS } from '../domain/models.js';
+
 export class ScreenRenderer {
     constructor(contentElement, petStageElement) {
         this.content = contentElement;
@@ -83,25 +85,56 @@ export class CommandScreenController {
         if (!this.textarea) return;
 
         const cursorContainer = document.querySelector('.cursor-blink')?.parentElement;
-        if (!cursorContainer) return;
+        if (cursorContainer) {
+            this.cursorText = cursorContainer.querySelector('span:first-child');
+            this.cursorBlock = cursorContainer.querySelector('.cursor-blink');
+        }
 
-        this.cursorText = cursorContainer.querySelector('span:first-child');
-        this.cursorBlock = cursorContainer.querySelector('.cursor-blink');
-
-        if (!this.cursorText || !this.cursorBlock) return;
-
+        // Textarea cursor simulation
         this.textarea.addEventListener('input', (e) => {
-            this.cursorText.textContent = e.target.value;
+            if (this.cursorText) this.cursorText.textContent = e.target.value;
         });
 
         this.textarea.addEventListener('blur', () => {
-            this.cursorBlock.style.opacity = '0.5';
-            this.cursorBlock.classList.remove('cursor-blink');
+            if (this.cursorBlock) {
+                this.cursorBlock.style.opacity = '0.5';
+                this.cursorBlock.classList.remove('cursor-blink');
+            }
         });
 
         this.textarea.addEventListener('focus', () => {
-            this.cursorBlock.style.opacity = '1';
-            this.cursorBlock.classList.add('cursor-blink');
+            if (this.cursorBlock) {
+                this.cursorBlock.style.opacity = '1';
+                this.cursorBlock.classList.add('cursor-blink');
+            }
+        });
+
+        // Mood Selection & Border Logic
+        this.setupMoodSelection();
+    }
+
+    setupMoodSelection() {
+        const moodButtons = document.querySelectorAll('.mood-selector-button');
+        const inputContainer = document.getElementById('prompt-container');
+
+        moodButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(btn.disabled) return; // Ignore if read-only
+
+                // Toggle Selected
+                moodButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+
+                // Update Border Color
+                const mood = btn.dataset.mood; // HAPPY, SAD, etc.
+                const color = MOOD_COLORS[mood] || MOOD_COLORS.NEUTRAL;
+
+                if (inputContainer) {
+                    inputContainer.style.borderColor = color;
+                    // Add transition for smooth effect
+                    inputContainer.style.transition = 'border-color 0.3s ease';
+                }
+            });
         });
     }
 
@@ -116,5 +149,15 @@ export class CommandScreenController {
                 this.cursorText.textContent = '';
             }
         }
+        // Reset border
+        const inputContainer = document.getElementById('prompt-container');
+        if(inputContainer) inputContainer.style.borderColor = ''; // Revert to default class
+
+        // Reset mood selection
+        const moodButtons = document.querySelectorAll('.mood-selector-button');
+        moodButtons.forEach(b => b.classList.remove('selected'));
+        // Select neutral by default? Or none.
+        const neutralBtn = document.querySelector('.mood-selector-button[data-mood="NEUTRAL"]');
+        if(neutralBtn) neutralBtn.classList.add('selected');
     }
 }
