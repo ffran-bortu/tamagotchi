@@ -155,7 +155,6 @@
                     <div class="absolute top-1 left-1 w-1 h-1 bg-white/30"></div>
                 </div>
             </div>
-            <p class="text-[#666] text-xs font-bold uppercase tracking-wide mt-1 status-text">Status: Thriving</p>
         </div>
 
         <nav class="grid grid-cols-3 gap-2 p-2 bg-retro-panel border-t-4 border-retro-border">
@@ -176,6 +175,20 @@
             </button>
         </nav>
     </div>
+
+    <!-- Feeding Animation Overlay -->
+    <div id="feeding-overlay" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden">
+        <div class="flex flex-col items-center gap-8">
+            <!-- Pet Canvas Container for eating animation (no background) -->
+            <div class="relative w-64 h-64 flex items-center justify-center">
+                <canvas id="feeding-sprite-canvas" width="300" height="300" class="absolute top-0 left-0"></canvas>
+                <canvas id="feeding-accessory-canvas" width="300" height="300" class="absolute top-0 left-0"></canvas>
+            </div>
+            <!-- Optional: Add a subtle message -->
+            <p id="feeding-message" class="text-retro-green text-sm font-pixel uppercase tracking-widest animate-pulse"></p>
+        </div>
+    </div>
+
     <script type="module" src="js/app.js"></script>
 </body>
 

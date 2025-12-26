@@ -41,7 +41,23 @@ const server = http.createServer((req, res) => {
     });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
+    const os = require('os');
+    const networkInterfaces = os.networkInterfaces();
+    let localIP = 'localhost';
+    
+    // Find the first non-internal IPv4 address
+    for (const interfaceName of Object.keys(networkInterfaces)) {
+        for (const iface of networkInterfaces[interfaceName]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                localIP = iface.address;
+                break;
+            }
+        }
+        if (localIP !== 'localhost') break;
+    }
+    
     console.log(`🚀 Pixel Pet PWA Server running at http://localhost:${PORT}/`);
+    console.log(`📱 Access from phone: http://${localIP}:${PORT}/`);
     console.log('Press Ctrl+C to stop the server');
 });
