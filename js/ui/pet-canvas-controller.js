@@ -1,42 +1,8 @@
 // ============================================================================
 // PET CANVAS CONTROLLER
 // Manages 3-layer canvas rendering with sprite animations
+// Updated for new individual sprite asset structure
 // ============================================================================
-
-export class SpriteSheet {
-    constructor(image, frameWidth, frameHeight, topRows, bottomRows) {
-        this.image = image;
-        this.frameWidth = frameWidth;
-        this.frameHeight = frameHeight;
-        this.topRows = topRows;      // Idle animation rows
-        this.bottomRows = bottomRows; // Feeding animation rows
-    }
-
-    getIdleFrame(frameIndex) {
-        // Simple grid calculation
-        const cols = Math.floor(this.image.width / this.frameWidth);
-        const col = frameIndex % cols;
-        const row = Math.floor(frameIndex / cols); // Should be 0 for idle if topRows=1
-        return {
-            x: col * this.frameWidth,
-            y: row * this.frameHeight,
-            width: this.frameWidth,
-            height: this.frameHeight
-        };
-    }
-
-    getFeedingFrame(frameIndex) {
-        const cols = Math.floor(this.image.width / this.frameWidth);
-        const col = frameIndex % cols;
-        const row = Math.floor(frameIndex / cols) + this.topRows;
-        return {
-            x: col * this.frameWidth,
-            y: row * this.frameHeight,
-            width: this.frameWidth,
-            height: this.frameHeight
-        };
-    }
-}
 
 export class PetCanvasController {
     constructor(db) {
@@ -52,32 +18,27 @@ export class PetCanvasController {
             accessory: null
         };
 
+        // New Sprite Structure
         this.sprites = {
-            fox1: null,
-            fox2: null,
-            fox3: null,
-            hatsGrid: null
-        };
-
-        this.spritesheets = {
-            fox1: null,
-            fox2: null,
-            fox3: null
+            foxes: {
+                1: { idle: [], eat: [] },
+                2: { idle: [], eat: [] },
+                3: { idle: [], eat: [] }
+            },
+            hats: [] // Index 0 is null (no hat), 1-9 are images
         };
 
         this.currentPetColor = 1; // 1, 2, or 3
-        this.currentHat = 0; // 0-8 (0 = no hat)
+        this.currentHat = 0; // 0-9 (0 = no hat)
         this.animationState = 'idle'; // 'idle' | 'feeding'
         this.currentFrame = 0;
         this.lastFrameTime = 0;
         this.frameDelay = 150; // ms per frame
         this.animationLoopId = null;
 
-        // Spritesheet config (High Resolution from Asset Analysis)
-        this.frameWidth = 632;
-        this.frameHeight = 848;
+        // Animation Config
         this.idleFrameCount = 4;
-        this.feedingFrameCount = 4;
+        this.feedingFrameCount = 3;
     }
 
     async initialize() {
@@ -105,7 +66,7 @@ export class PetCanvasController {
         this.contexts.pet = this.canvases.pet.getContext('2d');
         this.contexts.accessory = this.canvases.accessory.getContext('2d');
 
-        // Set pixel-perfect rendering (though assets are high res, we keep this for retro feel if scaling down)
+        // Set pixel-perfect rendering
         Object.values(this.contexts).forEach(ctx => {
             ctx.imageSmoothingEnabled = false;
         });
@@ -151,20 +112,46 @@ export class PetCanvasController {
                 ctx.fillText('Loading sprites...', petCanvas.width / 2, petCanvas.height / 2);
             }
 
-            // Load fox spritesheets (Correct Paths)
-            this.sprites.fox1 = await loadImage('/public/sprites/fox_1_spritesheet.png');
-            this.sprites.fox2 = await loadImage('/public/sprites/fox_2_spritesheet.png');
-            this.sprites.fox3 = await loadImage('/public/sprites/fox_3_spritesheet.png');
+            // Load Foxes (1-3)
+            for (let i = 1; i <= 3; i++) {
+                // Load Idle Frames (1-4)
+                for (let j = 1; j <= 4; j++) {
+                    const src = `/public/sprites/fox_${i}/idle/fox_${i}_idle_${j}.png`;
+                    try {
+                        const img = await loadImage(src);
+                        this.sprites.foxes[i].idle.push(img);
+                    } catch (e) {
+                        console.warn(`Skipping missing sprite: ${src}`);
+                    }
+                }
 
-            // Load hats grid
-            this.sprites.hatsGrid = await loadImage('/public/sprites/hats_grid.png');
+                // Load Eat Frames (1-3)
+                for (let j = 1; j <= 3; j++) {
+                    const src = `/public/sprites/fox_${i}/eat/fox_${i}_eat_${j}.png`;
+                    try {
+                        const img = await loadImage(src);
+                        this.sprites.foxes[i].eat.push(img);
+                    } catch (e) {
+                        console.warn(`Skipping missing sprite: ${src}`);
+                    }
+                }
+            }
 
-            // Create spritesheet instances with CORRECT dimensions (632x848)
-            this.spritesheets.fox1 = new SpriteSheet(this.sprites.fox1, this.frameWidth, this.frameHeight, 1, 1);
-            this.spritesheets.fox2 = new SpriteSheet(this.sprites.fox2, this.frameWidth, this.frameHeight, 1, 1);
-            this.spritesheets.fox3 = new SpriteSheet(this.sprites.fox3, this.frameWidth, this.frameHeight, 1, 1);
+            // Load Hats (1-9)
+            // Index 0 reserved for 'no hat'
+            this.sprites.hats.push(null);
+            for (let i = 1; i <= 9; i++) {
+                const src = `/public/sprites/hats/hat_${i}.png`;
+                try {
+                    const img = await loadImage(src);
+                    this.sprites.hats.push(img);
+                } catch (e) {
+                    console.warn(`Skipping missing sprite: ${src}`);
+                    this.sprites.hats.push(null); // Keep index alignment
+                }
+            }
 
-            console.log('✅ Sprites loaded successfully');
+            console.log('✅ Sprites loaded successfully (New Structure)');
         } catch (error) {
             console.error('❌ Error loading sprites:', error);
 
@@ -212,34 +199,38 @@ export class PetCanvasController {
         // Clear previous frame
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Get current spritesheet
-        const spritesheet = this.spritesheets[`fox${this.currentPetColor}`];
-        if (!spritesheet) return;
+        // Get correct frame list based on state
+        const foxData = this.sprites.foxes[this.currentPetColor];
+        if (!foxData) return;
 
-        // Get frame coordinates
-        let frame;
+        let frames;
         if (this.animationState === 'idle') {
-            frame = spritesheet.getIdleFrame(this.currentFrame % this.idleFrameCount);
-        } else {
-            frame = spritesheet.getFeedingFrame(this.currentFrame % this.feedingFrameCount);
+            frames = foxData.idle;
+        } else { // feeding
+            frames = foxData.eat;
         }
+
+        if (!frames || frames.length === 0) return;
+
+        // Get current image index
+        // Use modulo to cyclesafely
+        const frameIndex = this.currentFrame % frames.length;
+        const img = frames[frameIndex];
+
+        if (!img) return;
 
         // SCALING LOGIC
         // Scale to fit canvas (maintaining aspect ratio) with 80% coverage
-        const scale = Math.min(canvas.width / frame.width, canvas.height / frame.height) * 0.8;
-        const drawW = frame.width * scale;
-        const drawH = frame.height * scale;
+        const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
+        const drawW = img.width * scale;
+        const drawH = img.height * scale;
 
         // Center position
         const x = (canvas.width - drawW) / 2;
         const y = (canvas.height - drawH) / 2;
 
-        // Draw sprite
-        ctx.drawImage(
-            spritesheet.image,
-            frame.x, frame.y, frame.width, frame.height,
-            x, y, drawW, drawH
-        );
+        // Draw image
+        ctx.drawImage(img, x, y, drawW, drawH);
     }
 
     drawHat() {
@@ -250,34 +241,42 @@ export class PetCanvasController {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         if (this.currentHat === 0) return; // No hat
-        if (!this.sprites.hatsGrid) return;
 
-        // Calculate hat position in 3x3 grid
-        // Assuming hats are also high res approx 2048x2048 total?
-        // Subagent used 2048/3 = ~682px per hat
-        const hatSize = this.sprites.hatsGrid.width / 3;
+        const hatImg = this.sprites.hats[this.currentHat];
+        if (!hatImg) return;
 
-        const hatIndex = this.currentHat - 1; // 0-8 grid index
-        const col = hatIndex % 3;
-        const row = Math.floor(hatIndex / 3);
+        // SCALING LOGIC
+        // We need the pet dimensions to position the hat correctly relative to the pet
+        // We assume the pet scaling logic from drawPetFrame:
+        // Use fox1 idle frame 0 as reference for scaling
+        const refFox = this.sprites.foxes[1].idle[0];
+        if (!refFox) return;
 
-        const sourceX = col * hatSize;
-        const sourceY = row * hatSize;
+        const scale = Math.min(canvas.width / refFox.width, canvas.height / refFox.height) * 0.8;
 
-        // SCALING LOGIC matching pet
-        const scale = Math.min(canvas.width / this.frameWidth, canvas.height / this.frameHeight) * 0.8;
-        const drawSize = hatSize * scale * 0.6; // Scale hat relative to pet (tuned factor)
+        // Hat Scaling:
+        // Assuming the hat image should check dimensions relative to fox.
+        // If hats are roughly same resolution as fox head, we might need a specific scale factor.
+        // Previous logic used 0.6 factor. We'll stick with that for now.
+        const hatScale = scale * 0.6;
 
-        const x = (canvas.width - drawSize) / 2;
+        const drawSizeW = hatImg.width * hatScale; // Use aspect ratio of hat
+        const drawSizeH = hatImg.height * hatScale;
 
-        // Offset Y logic from subagent patch
-        const y = (canvas.height - this.frameHeight * scale) / 2 + (100 * scale);
+        const x = (canvas.width - drawSizeW) / 2;
 
-        ctx.drawImage(
-            this.sprites.hatsGrid,
-            sourceX, sourceY, hatSize, hatSize,
-            x, y, drawSize, drawSize
-        );
+        // Offset Y: Position on top of head
+        // Depending on the new assets, the "top of head" might vary.
+        // Previous offset was calculated based on fox height.
+        // Let's try to position it slightly above center-top of the fox.
+        const petDrawH = refFox.height * scale;
+        const petY = (canvas.height - petDrawH) / 2;
+
+        // Position hat: Start at petY, move up by some percentage of hat height
+        // Adjust this offset based on visual testing
+        const y = petY - (drawSizeH * 0.2);
+
+        ctx.drawImage(hatImg, x, y, drawSizeW, drawSizeH);
     }
 
     startAnimationLoop() {
@@ -290,7 +289,7 @@ export class PetCanvasController {
                 this.currentFrame++;
 
                 // Check if feeding animation completed
-                if (this.animationState === 'feeding' && this.currentFrame >= this.feedingFrameCount) {
+                if (this.animationState === 'feeding' && this.currentFrame >= this.sprites.foxes[this.currentPetColor].eat.length) {
                     this.animationState = 'idle';
                     this.currentFrame = 0;
                 }
@@ -318,10 +317,11 @@ export class PetCanvasController {
     }
 
     cycleHat(direction) {
+        // 10 options now (0-9)
         if (direction === 'next') {
-            this.currentHat = (this.currentHat + 1) % 9;
+            this.currentHat = (this.currentHat + 1) % 10;
         } else {
-            this.currentHat = (this.currentHat - 1 + 9) % 9;
+            this.currentHat = (this.currentHat - 1 + 10) % 10;
         }
 
         // Save to database
