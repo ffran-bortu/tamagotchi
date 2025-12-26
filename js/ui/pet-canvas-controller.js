@@ -3,66 +3,24 @@
 // Manages 3-layer canvas rendering with sprite animations
 // ============================================================================
 
-export class SpriteSheet {
-    constructor(image, frameWidth, frameHeight, topRows, bottomRows) {
-        this.image = image;
-        this.frameWidth = frameWidth;
-        this.frameHeight = frameHeight;
-        this.topRows = topRows;      // Idle animation rows
-        this.bottomRows = bottomRows; // Feeding animation rows
-    }
-
-    getIdleFrame(frameIndex) {
-        // Simple grid calculation
-        const cols = Math.floor(this.image.width / this.frameWidth);
-        const col = frameIndex % cols;
-        const row = Math.floor(frameIndex / cols); // Should be 0 for idle if topRows=1
-        return {
-            x: col * this.frameWidth,
-            y: row * this.frameHeight,
-            width: this.frameWidth,
-            height: this.frameHeight
-        };
-    }
-
-    getFeedingFrame(frameIndex) {
-        const cols = Math.floor(this.image.width / this.frameWidth);
-        const col = frameIndex % cols;
-        const row = Math.floor(frameIndex / cols) + this.topRows;
-        return {
-            x: col * this.frameWidth,
-            y: row * this.frameHeight,
-            width: this.frameWidth,
-            height: this.frameHeight
-        };
-    }
-}
-
 export class PetCanvasController {
-    constructor(db) {
+    constructor(db, canvasId = null) {
         this.db = db;
+        this.canvasId = canvasId; // To distinguish between main and closet canvas
         this.canvases = {
             background: null,
-            pet: null,
-            accessory: null
+            pet: null
         };
         this.contexts = {
             background: null,
-            pet: null,
-            accessory: null
+            pet: null
         };
 
         this.sprites = {
-            fox1: null,
-            fox2: null,
-            fox3: null,
-            hatsGrid: null
-        };
-
-        this.spritesheets = {
-            fox1: null,
-            fox2: null,
-            fox3: null
+            fox1: { idle: [], eat: [] },
+            fox2: { idle: [], eat: [] },
+            fox3: { idle: [], eat: [] },
+            hats: []
         };
 
         this.currentPetColor = 1; // 1, 2, or 3
@@ -73,49 +31,77 @@ export class PetCanvasController {
         this.frameDelay = 150; // ms per frame
         this.animationLoopId = null;
 
-        // Spritesheet config (High Resolution from Asset Analysis)
-        this.frameWidth = 632;
-        this.frameHeight = 848;
         this.idleFrameCount = 4;
-        this.feedingFrameCount = 4;
+        this.feedingFrameCount = 3; // Max 3 for now
     }
 
-    async initialize() {
+    async initialize(startAnimation = true) {
         this.setupCanvases();
         await this.loadSprites();
+
+        if (this.canvasId) {
+            // This is a preview canvas (e.g., in the closet), don't start animations
+            return;
+        }
+
         await this.loadPetCustomization();
         this.drawBackground();
-        this.drawHat();
-        this.startAnimationLoop();
+        this.redrawPet();
+        if (startAnimation) {
+            this.startAnimationLoop();
+        }
         this.setupControls();
     }
 
     setupCanvases() {
-        this.canvases.background = document.getElementById('pet-bg-canvas');
-        this.canvases.pet = document.getElementById('pet-sprite-canvas');
-        this.canvases.accessory = document.getElementById('pet-accessory-canvas');
+        if (this.canvasId) {
+            const canvas = document.getElementById(this.canvasId);
+            if (!canvas) {
+                console.error(`Canvas with id ${this.canvasId} not found.`);
+                return;
+            }
+            this.canvases.pet = canvas;
+            this.contexts.pet = canvas.getContext('2d');
+            this.contexts.pet.imageSmoothingEnabled = false;
+        } else {
+            this.canvases.background = document.getElementById('pet-bg-canvas');
+            this.canvases.pet = document.getElementById('pet-sprite-canvas');
 
-        if (!this.canvases.background || !this.canvases.pet || !this.canvases.accessory) {
-            console.error('Canvas elements not found');
-            return;
+            if (!this.canvases.background || !this.canvases.pet) {
+                console.error('Main canvas elements not found');
+                return;
+            }
+
+            this.contexts.background = this.canvases.background.getContext('2d');
+            this.contexts.pet = this.canvases.pet.getContext('2d');
+            this.contexts.accessory = this.canvases.accessory.getContext('2d');
+
+            Object.values(this.contexts).forEach(ctx => {
+                if (ctx) ctx.imageSmoothingEnabled = false;
+            });
+            this.resizeCanvases();
         }
 
-        // Get contexts
-        this.contexts.background = this.canvases.background.getContext('2d');
-        this.contexts.pet = this.canvases.pet.getContext('2d');
-        this.contexts.accessory = this.canvases.accessory.getContext('2d');
-
-        // Set pixel-perfect rendering (though assets are high res, we keep this for retro feel if scaling down)
-        Object.values(this.contexts).forEach(ctx => {
-            ctx.imageSmoothingEnabled = false;
-        });
+        if (this.canvases.background) {
+            this.contexts.background = this.canvases.background.getContext('2d');
+            this.contexts.background.imageSmoothingEnabled = false;
+        }
+        if (this.canvases.pet) {
+            this.contexts.pet = this.canvases.pet.getContext('2d');
+            this.contexts.pet.imageSmoothingEnabled = false;
+        }
+        if (this.canvases.accessory) {
+            this.contexts.accessory = this.canvases.accessory.getContext('2d');
+            this.contexts.accessory.imageSmoothingEnabled = false;
+        }
 
         Object.values(this.canvases).forEach(canvas => {
-            canvas.style.imageRendering = 'pixelated';
+            if (canvas) canvas.style.imageRendering = 'pixelated';
         });
 
-        // Size canvases
-        this.resizeCanvases();
+        if (this.canvases.background) {
+            this.resizeCanvases();
+        }
     }
 
     resizeCanvases() {
@@ -151,19 +137,26 @@ export class PetCanvasController {
                 ctx.fillText('Loading sprites...', petCanvas.width / 2, petCanvas.height / 2);
             }
 
-            // Load fox spritesheets (Correct Paths)
-            this.sprites.fox1 = await loadImage('/public/sprites/fox_1_spritesheet.png');
-            this.sprites.fox2 = await loadImage('/public/sprites/fox_2_spritesheet.png');
-            this.sprites.fox3 = await loadImage('/public/sprites/fox_3_spritesheet.png');
+            const spritePromises = [];
 
-            // Load hats grid
-            this.sprites.hatsGrid = await loadImage('/public/sprites/hats_grid.png');
+            // Load fox sprites
+            for (let i = 1; i <= 3; i++) {
+                // Idle frames
+                for (let j = 1; j <= 4; j++) {
+                    spritePromises.push(loadImage(`/public/sprites/fox_${i}/idle/fox_${i}_idle_${j}.png`).then(img => this.sprites[`fox${i}`].idle.push(img)));
+                }
+                // Eat frames
+                for (let j = 1; j <= 3; j++) {
+                    spritePromises.push(loadImage(`/public/sprites/fox_${i}/eat/fox_${i}_eat_${j}.png`).then(img => this.sprites[`fox${i}`].eat.push(img)));
+                }
+            }
 
-            // Create spritesheet instances with CORRECT dimensions (632x848)
-            this.spritesheets.fox1 = new SpriteSheet(this.sprites.fox1, this.frameWidth, this.frameHeight, 1, 1);
-            this.spritesheets.fox2 = new SpriteSheet(this.sprites.fox2, this.frameWidth, this.frameHeight, 1, 1);
-            this.spritesheets.fox3 = new SpriteSheet(this.sprites.fox3, this.frameWidth, this.frameHeight, 1, 1);
+            // Load hats
+            for (let i = 1; i <= 9; i++) {
+                spritePromises.push(loadImage(`/public/sprites/hats/hat_${i}.png`).then(img => this.sprites.hats[i - 1] = img));
+            }
 
+            await Promise.all(spritePromises);
             console.log('✅ Sprites loaded successfully');
         } catch (error) {
             console.error('❌ Error loading sprites:', error);
@@ -205,79 +198,40 @@ export class PetCanvasController {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    drawPetFrame() {
-        const ctx = this.contexts.pet;
-        const canvas = this.canvases.pet;
+    drawPet(color, hat, frameIndex = 0, animation = 'idle') {
+        const petColor = color || this.currentPetColor;
+        const petHat = hat !== undefined ? hat : this.currentHat;
 
-        // Clear previous frame
+        const canvas = this.canvasId ? document.getElementById(this.canvasId) : this.canvases.pet;
+        const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Get current spritesheet
-        const spritesheet = this.spritesheets[`fox${this.currentPetColor}`];
-        if (!spritesheet) return;
+        // Draw pet sprite
+        const spriteSet = this.sprites[`fox${petColor}`][animation];
+        const frame = spriteSet[frameIndex % spriteSet.length];
+        if (!frame) return;
 
-        // Get frame coordinates
-        let frame;
-        if (this.animationState === 'idle') {
-            frame = spritesheet.getIdleFrame(this.currentFrame % this.idleFrameCount);
-        } else {
-            frame = spritesheet.getFeedingFrame(this.currentFrame % this.feedingFrameCount);
-        }
-
-        // SCALING LOGIC
-        // Scale to fit canvas (maintaining aspect ratio) with 80% coverage
         const scale = Math.min(canvas.width / frame.width, canvas.height / frame.height) * 0.8;
         const drawW = frame.width * scale;
         const drawH = frame.height * scale;
-
-        // Center position
         const x = (canvas.width - drawW) / 2;
         const y = (canvas.height - drawH) / 2;
+        ctx.drawImage(frame, x, y, drawW, drawH);
 
-        // Draw sprite
-        ctx.drawImage(
-            spritesheet.image,
-            frame.x, frame.y, frame.width, frame.height,
-            x, y, drawW, drawH
-        );
+        // Draw hat
+        if (petHat) {
+            const hatImg = this.sprites.hats[parseInt(petHat, 10) - 1];
+            if (!hatImg) return;
+            const drawSize = hatImg.width * scale * 0.6;
+            const hatX = (canvas.width - drawSize) / 2;
+            const hatY = y + (100 * scale); // Adjust Y based on scaled pet position
+            ctx.drawImage(hatImg, hatX, hatY, drawSize, drawSize);
+        }
     }
 
-    drawHat() {
-        const ctx = this.contexts.accessory;
-        const canvas = this.canvases.accessory;
-
-        // Clear previous
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        if (this.currentHat === 0) return; // No hat
-        if (!this.sprites.hatsGrid) return;
-
-        // Calculate hat position in 3x3 grid
-        // Assuming hats are also high res approx 2048x2048 total?
-        // Subagent used 2048/3 = ~682px per hat
-        const hatSize = this.sprites.hatsGrid.width / 3;
-
-        const hatIndex = this.currentHat - 1; // 0-8 grid index
-        const col = hatIndex % 3;
-        const row = Math.floor(hatIndex / 3);
-
-        const sourceX = col * hatSize;
-        const sourceY = row * hatSize;
-
-        // SCALING LOGIC matching pet
-        const scale = Math.min(canvas.width / this.frameWidth, canvas.height / this.frameHeight) * 0.8;
-        const drawSize = hatSize * scale * 0.6; // Scale hat relative to pet (tuned factor)
-
-        const x = (canvas.width - drawSize) / 2;
-
-        // Offset Y logic from subagent patch
-        const y = (canvas.height - this.frameHeight * scale) / 2 + (100 * scale);
-
-        ctx.drawImage(
-            this.sprites.hatsGrid,
-            sourceX, sourceY, hatSize, hatSize,
-            x, y, drawSize, drawSize
-        );
+    redrawPet() {
+        // This is now handled by drawPet, but we need to call it for the main canvas
+        this.drawPet();
     }
 
     startAnimationLoop() {
@@ -295,7 +249,7 @@ export class PetCanvasController {
                     this.currentFrame = 0;
                 }
 
-                this.drawPetFrame();
+                this.drawPet(this.currentPetColor, this.currentHat, this.currentFrame, this.animationState);
                 this.lastFrameTime = timestamp;
             }
 
@@ -317,62 +271,8 @@ export class PetCanvasController {
         this.currentFrame = 0;
     }
 
-    cycleHat(direction) {
-        if (direction === 'next') {
-            this.currentHat = (this.currentHat + 1) % 9;
-        } else {
-            this.currentHat = (this.currentHat - 1 + 9) % 9;
-        }
-
-        // Save to database
-        this.db.updatePetHat(this.currentHat.toString());
-
-        // Redraw hat layer
-        this.drawHat();
-    }
-
-    cycleColor(direction) {
-        if (direction === 'next') {
-            this.currentPetColor = (this.currentPetColor % 3) + 1; // 1 → 2 → 3 → 1
-        } else {
-            this.currentPetColor = ((this.currentPetColor - 2 + 3) % 3) + 1; // 1 → 3 → 2 → 1
-        }
-
-        // Save to database
-        this.db.updatePetColor(this.currentPetColor);
-
-        // Force redraw of current pet frame with new color
-        this.drawPetFrame();
-    }
-
     setupControls() {
-        const prevHatBtn = document.getElementById('prev-hat');
-        const nextHatBtn = document.getElementById('next-hat');
-        const prevColorBtn = document.getElementById('prev-color');
-        const nextColorBtn = document.getElementById('next-color');
-
-        if (prevHatBtn) {
-            prevHatBtn.addEventListener('click', () => this.cycleHat('prev'));
-        }
-
-        if (nextHatBtn) {
-            nextHatBtn.addEventListener('click', () => this.cycleHat('next'));
-        }
-
-        if (prevColorBtn) {
-            prevColorBtn.addEventListener('click', () => this.cycleColor('prev'));
-        }
-
-        if (nextColorBtn) {
-            nextColorBtn.addEventListener('click', () => this.cycleColor('next'));
-        }
-
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') this.cycleHat('prev');
-            if (e.key === 'ArrowRight') this.cycleHat('next');
-            if (e.key === 'ArrowUp') this.cycleColor('next');
-            if (e.key === 'ArrowDown') this.cycleColor('prev');
-        });
+        // Keyboard controls for the main screen, if any, could go here.
+        // For now, it's empty as customization is handled in the closet.
     }
 }

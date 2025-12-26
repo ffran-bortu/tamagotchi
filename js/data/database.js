@@ -155,11 +155,6 @@ export class Database {
         this.save();
     }
 
-    updatePetHat(hatId) {
-        this.db.run("UPDATE pet SET current_hat = ? WHERE id = 1;", [hatId]);
-        this.save();
-    }
-
     unlockAccessory(accessoryId) {
         const state = this.getPetState();
         const accessories = state.unlockedAccessories;
