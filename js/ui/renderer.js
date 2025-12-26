@@ -22,13 +22,9 @@ export class ScreenRenderer {
             this.content.innerHTML = screenContent;
             this.currentScreen = screenName;
 
-            // Show/hide persistent pet stage based on screen
+            // Ensure persistent pet stage is always visible
             if (this.petStage) {
-                if (screenName === 'home') {
-                    this.petStage.classList.remove('hidden');
-                } else {
-                    this.petStage.classList.add('hidden');
-                }
+                this.petStage.classList.remove('hidden');
             }
 
             // Execute screen-specific initialization

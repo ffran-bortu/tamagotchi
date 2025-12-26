@@ -87,13 +87,21 @@
 <body class="bg-retro-bg text-white font-display antialiased overflow-hidden">
     <div id="app"
         class="relative flex h-full min-h-screen w-full flex-col bg-retro-bg max-w-md mx-auto shadow-2xl overflow-hidden border-x border-[#1a1a1a]">
-        <!-- Main content area for screens -->
-        <main id="content">
-            <!-- Screens will be loaded here -->
-        </main>
+
+        <!-- Persistent Header -->
+        <div class="flex items-center bg-retro-bg p-4 pb-2 justify-between border-b-4 border-[#3a3a3a] z-10">
+            <h2 id="current-time"
+                class="text-white text-xl font-bold leading-tight tracking-widest flex-1 uppercase text-shadow-sm">--:-- --</h2>
+            <div class="flex items-center justify-end gap-2">
+                <div class="flex items-center gap-1">
+                    <span class="text-xs font-bold tracking-widest text-retro-sage">80%</span>
+                    <span class="material-symbols-outlined text-retro-sage" style="font-size: 32px;">battery_5_bar</span>
+                </div>
+            </div>
+        </div>
 
         <!-- Persistent Pet Stage (In App Shell - Never Re-renders) -->
-        <div id="pet-stage-persistent" class="flex flex-col gap-2 px-6 pt-4 pb-2 hidden">
+        <div id="pet-stage-persistent" class="flex flex-col gap-2 px-6 pt-4 pb-2">
             <div class="flex gap-6 justify-between items-end">
                 <p class="text-white text-lg font-bold tracking-widest leading-none uppercase">Hunger</p>
                 <p id="hunger-percentage" class="text-retro-sage text-sm font-bold tracking-widest leading-none">100%
@@ -143,6 +151,12 @@
             </div>
             <p class="text-[#666] text-xs font-bold uppercase tracking-wide mt-1 status-text">Status: Thriving</p>
         </div>
+
+        <!-- Main content area for screens -->
+        <main id="content" class="flex-1 overflow-hidden flex flex-col relative z-0">
+            <!-- Screens will be loaded here -->
+        </main>
+
 
         <nav class="grid grid-cols-5 gap-2 p-2 bg-retro-panel border-t-4 border-retro-border">
             <button data-screen="home" class="group flex flex-col items-center gap-1 p-2">

@@ -53,7 +53,7 @@ export class PastReflectionsController {
                 : entry.content;
 
             html += `
-                <div class="relative bg-entry-bg border-4 border-retro-border p-4 shadow-pixel-card hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all overflow-hidden">
+                <div class="relative bg-entry-bg retro-card p-4 overflow-hidden">
                     <!-- Mood Accent Strip (Left Side) -->
                     <div class="absolute left-0 top-0 bottom-0 w-2" style="background-color: ${entry.accentColor};"></div>
                     
