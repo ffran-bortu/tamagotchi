@@ -9,6 +9,7 @@ import { ScreenRenderer, CommandScreenController } from './ui/renderer.js';
 import { ArchiveGridController } from './ui/archive-controller.js';
 import { PastReflectionsController } from './ui/past-reflections-controller.js';
 import { PetCanvasController } from './ui/pet-canvas-controller.js';
+import { ClosetController } from './ui/closet-controller.js';
 
 class PixelPetApp {
     constructor() {
@@ -29,13 +30,17 @@ class PixelPetApp {
             this.petState = new PetState(
                 dbPetState.lastFedTime,
                 dbPetState.currentHat,
-                dbPetState.unlockedAccessories
+                dbPetState.unlockedAccessories,
+                dbPetState.currentColor
             );
 
             // Initialize screen controllers
             this.archiveController = new ArchiveGridController(this.db);
             this.reflectionsController = new PastReflectionsController(this.db);
             this.petCanvas = new PetCanvasController(this.db);
+            this.closetController = new ClosetController(this.db, () => {
+                this.renderer.loadScreen('home', (screenName) => this.onScreenLoaded(screenName));
+            });
 
             // Setup UI
             this.setupUI();
@@ -104,6 +109,8 @@ class PixelPetApp {
             this.archiveController.initialize();
         } else if (screenName === 'past-reflections') {
             this.reflectionsController.initialize();
+        } else if (screenName === 'closet') {
+            this.closetController.initialize();
         }
     }
 

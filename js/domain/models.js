@@ -20,10 +20,11 @@ export const HUNGER_STATES = {
 };
 
 export class PetState {
-    constructor(lastFedTime, currentHat = '', unlockedAccessories = []) {
+    constructor(lastFedTime, currentHat = '', unlockedAccessories = [], currentColor = 1) {
         this.lastFedTime = lastFedTime;
         this.currentHat = currentHat;
         this.unlockedAccessories = unlockedAccessories;
+        this.currentColor = currentColor;
     }
 
     getHungerPercentage() {

@@ -1,0 +1,71 @@
+<main class="flex-1 flex flex-col p-4 w-full max-w-md mx-auto gap-6 justify-start pt-2 overflow-y-auto pb-24">
+    <div class="text-center pt-2">
+        <h1 class="font-pixel text-lg md:text-xl text-retro-light tracking-widest uppercase drop-shadow-md">THE CLOSET</h1>
+    </div>
+
+    <div id="closet-preview" class="relative w-full bg-black border-4 border-retro-gray shadow-retro-white p-8 flex items-center justify-center min-h-[220px]">
+        <div class="absolute top-0 left-0 w-2 h-2 bg-retro-light"></div>
+        <div class="absolute top-0 right-0 w-2 h-2 bg-retro-light"></div>
+        <div class="absolute bottom-0 left-0 w-2 h-2 bg-retro-light"></div>
+        <div class="absolute bottom-0 right-0 w-2 h-2 bg-retro-light"></div>
+        <div class="relative transform scale-150">
+            <canvas id="closet-canvas" class="pixel-scale" width="64" height="64"></canvas>
+        </div>
+    </div>
+
+    <div class="space-y-3">
+        <h3 class="font-pixel text-xs text-retro-gray uppercase tracking-widest">Body Color</h3>
+        <div id="color-selector" class="flex flex-row gap-4 overflow-x-auto pb-2 no-scrollbar">
+            <button data-color="1" class="w-12 h-12 bg-req-white border-4 border-white shadow-retro-strong shrink-0 transition-transform active:translate-y-1 relative group">
+                <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 font-terminal text-xs bg-black px-1 pointer-events-none whitespace-nowrap z-50">WHITE</div>
+            </button>
+            <button data-color="2" class="w-12 h-12 bg-req-darkblue border-4 border-black hover:border-retro-gray shrink-0 transition-transform active:translate-y-1 relative group">
+                <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 font-terminal text-xs bg-black px-1 pointer-events-none whitespace-nowrap z-50">BLUE</div>
+            </button>
+            <button data-color="3" class="w-12 h-12 bg-req-orange border-4 border-black hover:border-retro-gray shrink-0 transition-transform active:translate-y-1 relative group">
+                <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 font-terminal text-xs bg-black px-1 pointer-events-none whitespace-nowrap z-50">ORANGE</div>
+            </button>
+        </div>
+    </div>
+
+    <div class="space-y-3">
+        <h3 class="font-pixel text-xs text-retro-gray uppercase tracking-widest">Headwear</h3>
+        <div id="hat-selector" class="grid grid-cols-3 gap-4">
+            <button data-hat="" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <span class="material-symbols-outlined text-retro-gray text-3xl group-hover:-translate-y-1 transition-transform">block</span>
+            </button>
+            <button data-hat="1" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_1.png" class="pixel-scale w-12 h-12">
+            </button>
+            <button data-hat="2" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_2.png" class="pixel-scale w-12 h-12">
+            </button>
+            <button data-hat="3" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_3.png" class="pixel-scale w-12 h-12">
+            </button>
+            <button data-hat="4" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_4.png" class="pixel-scale w-12 h-12">
+            </button>
+            <button data-hat="5" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_5.png" class="pixel-scale w-12 h-12">
+            </button>
+            <button data-hat="6" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_6.png" class="pixel-scale w-12 h-12">
+            </button>
+            <button data-hat="7" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_7.png" class="pixel-scale w-12 h-12">
+            </button>
+            <button data-hat="8" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_8.png" class="pixel-scale w-12 h-12">
+            </button>
+            <button data-hat="9" class="aspect-square bg-surface-dark border-4 border-black hover:bg-retro-gray hover:border-retro-light flex items-center justify-center group transition-all">
+                <img src="/public/sprites/hats/hat_9.png" class="pixel-scale w-12 h-12">
+            </button>
+        </div>
+    </div>
+</main>
+<footer class="w-full bg-surface-dark border-t-4 border-retro-gray p-4 flex flex-col shrink-0 fixed bottom-0 max-w-md left-0 right-0 mx-auto z-10">
+    <button id="save-outfit-button" class="w-full bg-muted-sage border-4 border-black hover:bg-retro-green hover:border-white active:translate-y-1 active:shadow-none text-black font-pixel text-sm md:text-base py-4 uppercase tracking-widest shadow-retro-strong transition-all">
+        Save Outfit
+    </button>
+</footer>
