@@ -35,6 +35,7 @@ class PixelPetApp {
             // Initialize screen controllers
             this.archiveController = new ArchiveGridController(this.db);
             this.reflectionsController = new PastReflectionsController(this.db);
+            this.petCanvas = new PetCanvasController(this.db);
 
             // Setup UI
             this.setupUI();

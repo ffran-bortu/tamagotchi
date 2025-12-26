@@ -13,8 +13,10 @@ export class SpriteSheet {
     }
 
     getIdleFrame(frameIndex) {
-        const col = frameIndex % (this.image.width / this.frameWidth);
-        const row = Math.floor(frameIndex / (this.image.width / this.frameWidth));
+        // Simple grid calculation
+        const cols = Math.floor(this.image.width / this.frameWidth);
+        const col = frameIndex % cols;
+        const row = Math.floor(frameIndex / cols); // Should be 0 for idle if topRows=1
         return {
             x: col * this.frameWidth,
             y: row * this.frameHeight,
@@ -24,9 +26,9 @@ export class SpriteSheet {
     }
 
     getFeedingFrame(frameIndex) {
-        const totalIdleFrames = this.topRows * (this.image.width / this.frameWidth);
-        const col = frameIndex % (this.image.width / this.frameWidth);
-        const row = Math.floor(frameIndex / (this.image.width / this.frameWidth)) + this.topRows;
+        const cols = Math.floor(this.image.width / this.frameWidth);
+        const col = frameIndex % cols;
+        const row = Math.floor(frameIndex / cols) + this.topRows;
         return {
             x: col * this.frameWidth,
             y: row * this.frameHeight,
@@ -71,11 +73,11 @@ export class PetCanvasController {
         this.frameDelay = 150; // ms per frame
         this.animationLoopId = null;
 
-        // Spritesheet config (will be determined from actual images)
-        this.frameWidth = 96;
-        this.frameHeight = 96;
-        this.idleFrameCount = 8;
-        this.feedingFrameCount = 12;
+        // Spritesheet config (High Resolution from Asset Analysis)
+        this.frameWidth = 632;
+        this.frameHeight = 848;
+        this.idleFrameCount = 4;
+        this.feedingFrameCount = 4;
     }
 
     async initialize() {
@@ -103,7 +105,7 @@ export class PetCanvasController {
         this.contexts.pet = this.canvases.pet.getContext('2d');
         this.contexts.accessory = this.canvases.accessory.getContext('2d');
 
-        // Set pixel-perfect rendering
+        // Set pixel-perfect rendering (though assets are high res, we keep this for retro feel if scaling down)
         Object.values(this.contexts).forEach(ctx => {
             ctx.imageSmoothingEnabled = false;
         });
@@ -137,23 +139,47 @@ export class PetCanvasController {
         };
 
         try {
-            // Load fox spritesheets
-            this.sprites.fox1 = await loadImage('/public/sprites/fox_1_spritesheet.png.png');
+            // Show loading indicator
+            const petCanvas = this.canvases.pet;
+            const ctx = this.contexts.pet;
+            if (petCanvas && ctx) {
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, petCanvas.width, petCanvas.height);
+                ctx.fillStyle = '#9370DB';
+                ctx.font = '16px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('Loading sprites...', petCanvas.width / 2, petCanvas.height / 2);
+            }
+
+            // Load fox spritesheets (Correct Paths)
+            this.sprites.fox1 = await loadImage('/public/sprites/fox_1_spritesheet.png');
             this.sprites.fox2 = await loadImage('/public/sprites/fox_2_spritesheet.png');
-            this.sprites.fox3 = await loadImage('/public/sprites/fox_3_spritesheet.png.png');
+            this.sprites.fox3 = await loadImage('/public/sprites/fox_3_spritesheet.png');
 
             // Load hats grid
             this.sprites.hatsGrid = await loadImage('/public/sprites/hats_grid.png');
 
-            // Create spritesheet instances with CORRECT dimensions
-            // Spritesheets are 256x128 (4 frames wide × 2 rows tall, 64x64 per frame)
-            this.spritesheets.fox1 = new SpriteSheet(this.sprites.fox1, 64, 64, 1, 1);
-            this.spritesheets.fox2 = new SpriteSheet(this.sprites.fox2, 64, 64, 1, 1);
-            this.spritesheets.fox3 = new SpriteSheet(this.sprites.fox3, 64, 64, 1, 1);
+            // Create spritesheet instances with CORRECT dimensions (632x848)
+            this.spritesheets.fox1 = new SpriteSheet(this.sprites.fox1, this.frameWidth, this.frameHeight, 1, 1);
+            this.spritesheets.fox2 = new SpriteSheet(this.sprites.fox2, this.frameWidth, this.frameHeight, 1, 1);
+            this.spritesheets.fox3 = new SpriteSheet(this.sprites.fox3, this.frameWidth, this.frameHeight, 1, 1);
 
             console.log('✅ Sprites loaded successfully');
         } catch (error) {
             console.error('❌ Error loading sprites:', error);
+
+            // Show error message
+            const petCanvas = this.canvases.pet;
+            const ctx = this.contexts.pet;
+            if (petCanvas && ctx) {
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, petCanvas.width, petCanvas.height);
+                ctx.fillStyle = '#F08080';
+                ctx.font = '14px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('Failed to load sprites', petCanvas.width / 2, petCanvas.height / 2 - 10);
+                ctx.fillText('Check console', petCanvas.width / 2, petCanvas.height / 2 + 10);
+            }
         }
     }
 
@@ -198,15 +224,21 @@ export class PetCanvasController {
             frame = spritesheet.getFeedingFrame(this.currentFrame % this.feedingFrameCount);
         }
 
-        // Calculate center position
-        const x = (canvas.width - frame.width * 2) / 2;
-        const y = (canvas.height - frame.height * 2) / 2;
+        // SCALING LOGIC
+        // Scale to fit canvas (maintaining aspect ratio) with 80% coverage
+        const scale = Math.min(canvas.width / frame.width, canvas.height / frame.height) * 0.8;
+        const drawW = frame.width * scale;
+        const drawH = frame.height * scale;
 
-        // Draw sprite (scaled 2x)
+        // Center position
+        const x = (canvas.width - drawW) / 2;
+        const y = (canvas.height - drawH) / 2;
+
+        // Draw sprite
         ctx.drawImage(
             spritesheet.image,
             frame.x, frame.y, frame.width, frame.height,
-            x, y, frame.width * 2, frame.height * 2
+            x, y, drawW, drawH
         );
     }
 
@@ -218,28 +250,33 @@ export class PetCanvasController {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         if (this.currentHat === 0) return; // No hat
-
         if (!this.sprites.hatsGrid) return;
 
         // Calculate hat position in 3x3 grid
+        // Assuming hats are also high res approx 2048x2048 total?
+        // Subagent used 2048/3 = ~682px per hat
+        const hatSize = this.sprites.hatsGrid.width / 3;
+
         const hatIndex = this.currentHat - 1; // 0-8 grid index
         const col = hatIndex % 3;
         const row = Math.floor(hatIndex / 3);
 
-        // Assuming hats_grid is 288x288 (3x3 grid of 96x96 hats)
-        const hatSize = this.sprites.hatsGrid.width / 3;
         const sourceX = col * hatSize;
         const sourceY = row * hatSize;
 
-        // Position hat on pet's head (adjusted for 64x64 sprites)
-        const HAT_OFFSET_Y = -30; // Fine-tuned for 64px sprites
-        const x = (canvas.width - hatSize * 2) / 2;
-        const y = (canvas.height - this.frameHeight * 2) / 2 + HAT_OFFSET_Y;
+        // SCALING LOGIC matching pet
+        const scale = Math.min(canvas.width / this.frameWidth, canvas.height / this.frameHeight) * 0.8;
+        const drawSize = hatSize * scale * 0.6; // Scale hat relative to pet (tuned factor)
+
+        const x = (canvas.width - drawSize) / 2;
+
+        // Offset Y logic from subagent patch
+        const y = (canvas.height - this.frameHeight * scale) / 2 + (100 * scale);
 
         ctx.drawImage(
             this.sprites.hatsGrid,
             sourceX, sourceY, hatSize, hatSize,
-            x, y, hatSize * 2, hatSize * 2
+            x, y, drawSize, drawSize
         );
     }
 
